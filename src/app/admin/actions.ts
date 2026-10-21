@@ -44,6 +44,16 @@ export async function removeBallot(form: FormData) {
   revalidatePath("/admin");
 }
 
+export async function deleteBallot(form: FormData) {
+  await requireAdmin();
+  const id = Number(form.get("id"));
+  if (!Number.isSafeInteger(id) || id <= 0) throw new Error("Bad ballot id");
+  // Hard delete (unlike removeBallot): the ballot is erased and the device that cast it
+  // can vote again. Meant for demo/test votes.
+  await sql`DELETE FROM ballots WHERE id = ${id}`;
+  revalidatePath("/", "layout");
+}
+
 export type TalkFormState = { error?: string; ok?: boolean } | undefined;
 
 /** For clearing out test votes before the conference. Talks are kept. */

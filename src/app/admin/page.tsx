@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { isAdmin } from "@/lib/admin-auth";
-import { CATEGORIES, type CategoryId } from "@/lib/categories";
-import { getCategoryStatus, getFlaggedBallots, getResults, getTalks } from "@/lib/queries";
+import { CATEGORIES, RANK_LABEL, type CategoryId } from "@/lib/categories";
+import { getBallotList, getCategoryStatus, getFlaggedBallots, getResults, getTalks } from "@/lib/queries";
 import { siteUrl } from "@/lib/site-url";
-import { logout, removeBallot, setTalkHidden, setVotingOpen } from "./actions";
+import { deleteBallot, logout, removeBallot, setTalkHidden, setVotingOpen } from "./actions";
+import { buttonClass } from "@/components/admin/styles";
 import {
   AutoRefresh,
-  buttonClass,
   ConfirmButton,
   DeleteAllBallots,
   EditTalk,
@@ -20,8 +20,9 @@ export const metadata: Metadata = { title: "Admin · People's Choice", robots: {
 const IDS = Object.keys(CATEGORIES) as CategoryId[];
 const card = "rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 sm:p-6";
 const secondary = `${buttonClass} bg-white ring-1 ring-neutral-400 hover:bg-neutral-50`;
+const BALLOT_LIST_SIZE = 25;
 
-export default async function AdminPage() {
+export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
   if (!(await isAdmin())) {
     return (
       <main className="mx-auto w-full max-w-sm flex-1 px-4 py-12">
@@ -31,10 +32,12 @@ export default async function AdminPage() {
     );
   }
 
-  const [status, flagged, url, ...perCategory] = await Promise.all([
+  const showAllBallots = (await searchParams).ballots === "all";
+  const [status, flagged, url, ballotList, ...perCategory] = await Promise.all([
     getCategoryStatus(),
     getFlaggedBallots(),
     siteUrl(),
+    getBallotList(showAllBallots ? null : BALLOT_LIST_SIZE),
     ...IDS.map(async (id) => ({ id, results: await getResults(id), talks: await getTalks(id, true) })),
   ]);
   const timeFmt = new Intl.DateTimeFormat("en-US", { timeStyle: "short", dateStyle: "short", timeZone: "America/New_York" });
@@ -153,6 +156,54 @@ export default async function AdminPage() {
               </li>
             ))}
           </ul>
+        )}
+      </section>
+
+      {/* Every ballot, with a hard Delete (for demo / test votes) */}
+      <section aria-labelledby="ballots-h" className={card}>
+        <h2 id="ballots-h" className="text-xl font-bold">All ballots ({ballotList.total})</h2>
+        <p className="mt-1 text-sm text-neutral-600">
+          Newest first. <strong>Delete</strong> erases a ballot completely: it stops counting and the phone that cast it
+          can vote again, so it&apos;s good for clearing demo votes. Tip: when you demo, type a name like
+          &ldquo;Demo&rdquo; on the ballot so those votes are easy to spot here.
+        </p>
+        {ballotList.total === 0 ? (
+          <p className="mt-4">No ballots yet.</p>
+        ) : (
+          <ul className="mt-4 divide-y divide-neutral-200">
+            {ballotList.rows.map((b) => (
+              <li key={b.id} className={`flex flex-col gap-2 py-3 sm:flex-row sm:items-start sm:justify-between ${b.removed_at ? "opacity-60" : ""}`}>
+                <div className="text-sm">
+                  <p className="font-semibold">
+                    #{b.id} · {CATEGORIES[b.category_id].short} · {timeFmt.format(b.created_at)} ·{" "}
+                    {b.voter_name ?? <span className="font-normal italic text-neutral-600">no name</span>}
+                    {b.removed_at && <span className="ml-2 rounded bg-neutral-200 px-1.5 text-xs font-normal">removed as suspicious</span>}
+                  </p>
+                  <ol className="mt-1 text-neutral-700">
+                    {b.picks.map((title, i) => (
+                      <li key={i}>
+                        <span className="font-medium">{RANK_LABEL[(i + 1) as 1 | 2 | 3]}:</span> {title}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+                <form action={deleteBallot}>
+                  <input type="hidden" name="id" value={b.id} />
+                  <ConfirmButton
+                    message={`Delete ballot #${b.id}${b.voter_name ? ` (${b.voter_name})` : ""} permanently? It stops counting, and that phone will be able to vote again.`}
+                    className={`${buttonClass} bg-white text-red-800 ring-1 ring-red-300 hover:bg-red-50`}
+                  >
+                    Delete
+                  </ConfirmButton>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+        {ballotList.total > BALLOT_LIST_SIZE && (
+          <a href={showAllBallots ? "/admin#ballots-h" : "/admin?ballots=all#ballots-h"} className={`${secondary} mt-3`}>
+            {showAllBallots ? `Show only the newest ${BALLOT_LIST_SIZE}` : `Show all ${ballotList.total} ballots`}
+          </a>
         )}
       </section>
 

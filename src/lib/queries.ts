@@ -96,6 +96,28 @@ export async function getFlaggedBallots(): Promise<FlaggedBallot[]> {
   }));
 }
 
+export type BallotListRow = {
+  id: number;
+  category_id: CategoryId;
+  voter_name: string | null;
+  created_at: Date;
+  removed_at: Date | null;
+  picks: string[]; // talk titles in order: 1st, 2nd, 3rd
+};
+
+/** Every ballot, newest first (or just the newest `limit`), for the admin list. */
+export async function getBallotList(limit: number | null): Promise<{ rows: BallotListRow[]; total: number }> {
+  const rows = await sql<BallotListRow[]>`
+    SELECT b.id, b.category_id, b.voter_name, b.created_at, b.removed_at,
+      COALESCE((SELECT array_agg(t.title ORDER BY p.rank)
+         FROM ballot_picks p JOIN talks t ON t.id = p.talk_id WHERE p.ballot_id = b.id), '{}') AS picks
+    FROM ballots b
+    ORDER BY b.created_at DESC, b.id DESC
+    ${limit ? sql`LIMIT ${limit}` : sql``}`;
+  const [{ count }] = await sql<{ count: number }[]>`SELECT count(*)::int AS count FROM ballots`;
+  return { rows, total: count };
+}
+
 export type BallotExportRow = {
   id: number;
   category_id: CategoryId;

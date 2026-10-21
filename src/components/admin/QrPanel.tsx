@@ -3,7 +3,7 @@
 import QRCode from "qrcode";
 import { useEffect, useState } from "react";
 import { CONFERENCE_DATE, CONFERENCE_NAME } from "@/lib/categories";
-import { buttonClass } from "./AdminClient";
+import { buttonClass } from "./styles";
 
 function download(dataUrl: string, filename: string) {
   const a = document.createElement("a");

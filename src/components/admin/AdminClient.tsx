@@ -8,9 +8,7 @@ import { useFormStatus } from "react-dom";
 import { addTalk, deleteAllBallots, login, updateTalk, type TalkFormState } from "@/app/admin/actions";
 import type { CategoryId } from "@/lib/categories";
 
-const input = "block min-h-11 w-full rounded-lg border border-neutral-400 bg-white px-3 text-base";
-export const buttonClass =
-  "inline-flex min-h-11 items-center justify-center rounded-lg px-4 font-semibold disabled:opacity-60";
+import { buttonClass, inputClass as input } from "./styles";
 
 export function LoginForm() {
   const [state, action, pending] = useActionState(login, undefined);

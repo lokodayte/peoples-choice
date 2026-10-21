@@ -18,6 +18,7 @@ Results are visible only on the password-protected **/admin** page.
 - [How "one vote per person" works (and its limits)](#how-one-vote-per-person-works-and-its-limits)
 - [Deploying for free, step by step](#deploying-for-free-step-by-step)
 - [On the day of the conference](#on-the-day-of-the-conference)
+- [Showing people how it works](#showing-people-how-it-works)
 - [Changing the talks](#changing-the-talks)
 - [Running it on your own computer (optional)](#running-it-on-your-own-computer-optional)
 - [Settings (environment variables)](#settings-environment-variables)
@@ -48,6 +49,9 @@ Then:
   and a *hash* of IP + browser type (raw IP addresses are never stored). Flags appear when the same network and browser
   cast identical picks within 10 minutes, or send 6 or more ballots for one award within 2 minutes.
   You can remove flagged ballots. A removed ballot stops counting, and that device still can't vote again.
+- **Deleting a ballot is different from removing it.** The **All ballots** list on the admin page has a **Delete**
+  button on every ballot. Delete erases the ballot completely, and the phone that cast it *can* vote again.
+  Use it for demo and test votes (see [Showing people how it works](#showing-people-how-it-works)).
 - **Everything is checked on the server.** The browser is never trusted: picks must be real talks in that award,
   no repeats, 1 to 3 picks, voting must be open, and so on.
 
@@ -206,6 +210,24 @@ On the admin page, under **Shared QR code**:
    Numbers or Google Sheets.
 
 Ties are ordered by number of 1st-place votes, then 2nd-place votes. Check the CSV if it's close.
+
+---
+
+## Showing people how it works
+
+You can demo the site live, even after real voting has started, and clean up afterwards:
+
+1. Make sure voting is **open** for the award you're demoing.
+2. Vote on your phone (or let someone else vote). On the confirm screen, type **Demo** in the "Your name" box,
+   so the demo ballot is easy to find.
+3. On the admin page, scroll to **All ballots** (newest first) and click **Delete** next to the "Demo" ballot.
+4. That ballot no longer counts, and the phone can vote again. A real vote from that phone later counts normally.
+
+| Button | Where | What it does | Can that phone vote again? |
+|---|---|---|---|
+| **Delete** | All ballots | Erases one ballot completely | Yes |
+| **Remove** | Flagged ballots | Stops a suspicious ballot counting, but keeps a record | No |
+| **Delete all ballots** | Bottom of the page | Erases *every* ballot (use before the conference) | Yes, everyone |
 
 ---
 
