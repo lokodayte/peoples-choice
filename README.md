@@ -189,11 +189,27 @@ address:
 
 ### Step 8: Print the QR code
 
-On the admin page, under **Shared QR code**:
+**The designed print set (recommended).** In Terminal, inside this folder, run (with your real address):
 
-- **Download QR (PNG)**: just the QR code, for slides and handouts.
-- **Download poster (PNG, letter size)**: big QR + "Vote for People's Choice!" + the address in text.
-- **Open printable poster**: the same poster as a web page. Click **Print this poster**.
+```bash
+npm run print -- https://your-site.vercel.app
+```
+
+It creates, in `print/out/`:
+
+| File | What it is | How to print |
+|---|---|---|
+| `flyer.pdf` | Letter-size wall flyer (big QR, steps, 4:00 PM deadline) | Letter paper, color, **"Actual size" / 100%** (not "Fit") |
+| `table-tent.pdf` | Sign for the check-in table | Letter, landscape, color, 100%. Fold along the dashed line so it stands up; both sides read right-way up |
+| `schedule-qr.png` / `.svg` | The QR code alone | Place into the printed schedule, at least 1 inch wide, with white space around it |
+| `schedule-qr-labeled.png` | QR + "Scan to vote!" caption | Same, if the schedule has room for the caption |
+| `flyer.png`, `table-tent.png` | Image previews | For email or slides |
+
+The event name, date and closing time are at the top of `print/make-print-files.mjs` if they ever need changing.
+The script needs Google Chrome installed.
+
+**Quick alternative:** on the admin page, under **Shared QR code**, you can download the plain QR (PNG) or a simple
+letter-size poster.
 
 **Before printing a stack, scan one printed copy with a phone** to make sure it opens your real site.
 
@@ -205,7 +221,11 @@ On the admin page, under **Shared QR code**:
    **Best Lightning Talk** when the lightning talks start, or both at once, as you prefer.
 2. Leave the admin page open to watch live results. It refreshes every 15 seconds.
 3. Glance at **Flagged ballots** now and then. Remove anything clearly fake.
-4. At the end, click **Close voting** on each award. Voters then see "Voting has closed".
+4. **Voting closes automatically at 4:00 PM** (New York time) on Friday, October 30. Voters then see
+   "Voting has closed" with a note that winners will be announced at the awards ceremony. You don't need to do
+   anything, but you can still click **Close voting** earlier. To change the time, edit **Close automatically at**
+   on each award's card. If you need extra time after 4:00, click **Open voting** to re-open it (this removes
+   the automatic closing time).
 5. Click **Download results (CSV)** and **Download all ballots (CSV)** to keep a record. The CSVs open in Excel,
    Numbers or Google Sheets.
 

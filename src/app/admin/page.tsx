@@ -3,7 +3,8 @@ import { isAdmin } from "@/lib/admin-auth";
 import { CATEGORIES, RANK_LABEL, type CategoryId } from "@/lib/categories";
 import { getBallotList, getCategoryStatus, getFlaggedBallots, getResults, getTalks } from "@/lib/queries";
 import { siteUrl } from "@/lib/site-url";
-import { deleteBallot, logout, removeBallot, setTalkHidden, setVotingOpen } from "./actions";
+import { formatClosing, toNewYorkInputValue } from "@/lib/format";
+import { deleteBallot, logout, removeBallot, setClosingTime, setTalkHidden, setVotingOpen } from "./actions";
 import { buttonClass } from "@/components/admin/styles";
 import {
   AutoRefresh,
@@ -57,29 +58,64 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
       {/* Results + open/close */}
       <section aria-labelledby="results-h" className="space-y-6">
         <h2 id="results-h" className="text-xl font-bold">Live results <span className="text-base font-normal text-neutral-600">(only visible here)</span></h2>
-        {perCategory.map(({ id, results }) => (
+        {perCategory.map(({ id, results }) => {
+          const { open, switchedOn, closesAt } = status[id];
+          const closedByTimer = switchedOn && !open && closesAt !== null;
+          return (
           <div key={id} className={card}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h3 className="text-lg font-bold">{CATEGORIES[id].name}</h3>
                 <p className="text-neutral-700">
                   {results.ballots} {results.ballots === 1 ? "ballot" : "ballots"} ·{" "}
-                  <span className={status[id] ? "font-semibold text-green-800" : "font-semibold text-red-800"}>
-                    Voting {status[id] ? "OPEN" : "CLOSED"}
+                  <span className={open ? "font-semibold text-green-800" : "font-semibold text-red-800"}>
+                    Voting {open ? "OPEN" : "CLOSED"}
                   </span>
+                </p>
+                <p className="text-sm text-neutral-600">
+                  {closedByTimer
+                    ? `Closed automatically ${formatClosing(closesAt)}.`
+                    : closesAt
+                      ? `Closes automatically ${formatClosing(closesAt)}${open ? "" : " (once opened)"}.`
+                      : "No automatic closing time."}
                 </p>
               </div>
               <form action={setVotingOpen}>
                 <input type="hidden" name="category" value={id} />
-                <input type="hidden" name="open" value={String(!status[id])} />
+                <input type="hidden" name="open" value={String(!open)} />
                 <ConfirmButton
-                  message={`${status[id] ? "Close" : "Open"} voting for ${CATEGORIES[id].name}?`}
-                  className={status[id] ? secondary : `${buttonClass} bg-green-700 text-white hover:bg-green-800`}
+                  message={
+                    open
+                      ? `Close voting for ${CATEGORIES[id].name}?`
+                      : closedByTimer
+                        ? `Re-open voting for ${CATEGORIES[id].name}? The automatic closing time has passed, so it will be removed.`
+                        : `Open voting for ${CATEGORIES[id].name}?`
+                  }
+                  className={open ? secondary : `${buttonClass} bg-green-700 text-white hover:bg-green-800`}
                 >
-                  {status[id] ? "Close voting" : "Open voting"}
+                  {open ? "Close voting" : "Open voting"}
                 </ConfirmButton>
               </form>
             </div>
+            <form action={setClosingTime} className="mt-3 flex flex-wrap items-end gap-2 rounded-lg bg-neutral-50 p-3 text-sm">
+              <input type="hidden" name="category" value={id} />
+              <div>
+                <label htmlFor={`closes-${id}`} className="block font-medium">Close automatically at (New York time)</label>
+                <input
+                  id={`closes-${id}`}
+                  type="datetime-local"
+                  name="closes_at"
+                  defaultValue={closesAt ? toNewYorkInputValue(closesAt) : ""}
+                  className="mt-1 min-h-11 rounded-lg border border-neutral-400 bg-white px-2 text-base"
+                />
+              </div>
+              <button className={secondary}>Save time</button>
+              {closesAt && (
+                <button name="clear" value="true" className={`${buttonClass} text-brand underline underline-offset-4`}>
+                  Turn off automatic closing
+                </button>
+              )}
+            </form>
             <div className="mt-4 overflow-x-auto">
               <table className="w-full min-w-[36rem] text-left text-sm">
                 <thead className="border-b border-neutral-300 text-neutral-600">
@@ -111,7 +147,8 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
               </table>
             </div>
           </div>
-        ))}
+          );
+        })}
         <div className="flex flex-wrap gap-2">
           <a href="/api/admin/export?type=results" className={secondary}>Download results (CSV)</a>
           <a href="/api/admin/export?type=ballots" className={secondary}>Download all ballots (CSV)</a>

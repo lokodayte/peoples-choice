@@ -31,14 +31,15 @@ export default async function VotePage({ params }: PageProps<"/vote/[category]">
       <h1 className="mt-1 text-2xl font-bold sm:text-3xl">{CATEGORIES[category].name}</h1>
       <Ballot
         // A new key resets the ballot when the server's answer changes (e.g. after the cookie is restored).
-        key={`${voted.has(category)}-${status[category]}`}
+        key={`${voted.has(category)}-${status[category].open}`}
         category={category}
         talks={talks.map(({ id, start_time, position, room, speakers, title }) => ({
           id, start_time, position, room, speakers, title,
         }))}
-        isOpen={status[category]}
+        isOpen={status[category].open}
+        closesAt={status[category].closesAt?.toISOString() ?? null}
         alreadyVoted={voted.has(category)}
-        other={{ id: other, name: CATEGORIES[other].name, voted: voted.has(other), open: status[other] }}
+        other={{ id: other, name: CATEGORIES[other].name, voted: voted.has(other), open: status[other].open }}
       />
     </main>
   );

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CATEGORIES, CONFERENCE_DATE, CONFERENCE_NAME, type CategoryId } from "@/lib/categories";
+import { formatClosing } from "@/lib/format";
 import { getCategoryStatus } from "@/lib/queries";
 import { voterIdFromCookie, votedCategories } from "@/lib/voter";
 
@@ -20,7 +21,7 @@ export default async function Home() {
 
       <div className="mt-8 grid gap-4">
         {(Object.keys(CATEGORIES) as CategoryId[]).map((id) => (
-          <CategoryButton key={id} id={id} voted={voted.has(id)} open={status[id]} />
+          <CategoryButton key={id} id={id} voted={voted.has(id)} open={status[id].open} closesAt={status[id].closesAt} />
         ))}
       </div>
 
@@ -42,9 +43,13 @@ export default async function Home() {
   );
 }
 
-function CategoryButton({ id, voted, open }: { id: CategoryId; voted: boolean; open: boolean }) {
+function CategoryButton({ id, voted, open, closesAt }: { id: CategoryId; voted: boolean; open: boolean; closesAt: Date | null }) {
   const category = CATEGORIES[id];
-  const note = voted ? "You voted. Thanks!" : open ? "Tap to vote" : "Voting is closed";
+  const note = voted
+    ? "You voted. Thanks!"
+    : open
+      ? closesAt ? `Tap to vote · open until ${formatClosing(closesAt).replace(/^.* at /, "")}` : "Tap to vote"
+      : "Voting is closed";
   return (
     <Link
       href={`/vote/${id}`}

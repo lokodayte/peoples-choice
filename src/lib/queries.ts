@@ -22,10 +22,20 @@ export async function getTalks(category: CategoryId, includeHidden = false): Pro
     ORDER BY start_minute, position, room, id`;
 }
 
-export async function getCategoryStatus(): Promise<Record<CategoryId, boolean>> {
-  const rows = await sql<{ id: CategoryId; is_open: boolean }[]>`SELECT id, is_open FROM categories`;
-  const status = { papers: false, lightning: false };
-  for (const r of rows) status[r.id] = r.is_open;
+export type CategoryState = {
+  open: boolean;          // can people vote right now?
+  switchedOn: boolean;    // the admin's Open/Close switch
+  closesAt: Date | null;  // automatic closing time, if any
+};
+
+/** Voting is open when the admin has switched it on AND the closing time (if set) hasn't passed. */
+export async function getCategoryStatus(): Promise<Record<CategoryId, CategoryState>> {
+  const rows = await sql<{ id: CategoryId; is_open: boolean; closes_at: Date | null; open: boolean }[]>`
+    SELECT id, is_open, closes_at, (is_open AND (closes_at IS NULL OR now() < closes_at)) AS open
+    FROM categories`;
+  const closed: CategoryState = { open: false, switchedOn: false, closesAt: null };
+  const status: Record<CategoryId, CategoryState> = { papers: closed, lightning: closed };
+  for (const r of rows) status[r.id] = { open: r.open, switchedOn: r.is_open, closesAt: r.closes_at };
   return status;
 }
 

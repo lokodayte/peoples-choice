@@ -31,7 +31,32 @@ export async function setVotingOpen(form: FormData) {
   const category = form.get("category");
   if (!isCategoryId(category)) throw new Error("Bad category");
   const open = form.get("open") === "true";
-  await sql`UPDATE categories SET is_open = ${open} WHERE id = ${category}`;
+  // Opening by hand after the closing time has passed clears that closing time,
+  // otherwise "Open voting" would seem to do nothing.
+  await sql`
+    UPDATE categories
+    SET is_open = ${open},
+        closes_at = CASE WHEN ${open} AND closes_at <= now() THEN NULL ELSE closes_at END
+    WHERE id = ${category}`;
+  revalidatePath("/", "layout");
+}
+
+/** Sets (or clears) the automatic closing time. The form sends New York local time. */
+export async function setClosingTime(form: FormData) {
+  await requireAdmin();
+  const category = form.get("category");
+  if (!isCategoryId(category)) throw new Error("Bad category");
+  const value = String(form.get("closes_at") ?? "");
+  if (form.get("clear") === "true" || value === "") {
+    await sql`UPDATE categories SET closes_at = NULL WHERE id = ${category}`;
+  } else {
+    if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) throw new Error("Bad date/time");
+    // "::text" first: otherwise the driver converts the string through the server's own
+    // clock time zone before Postgres sees it, shifting the time by hours.
+    await sql`
+      UPDATE categories SET closes_at = (${value}::text::timestamp AT TIME ZONE 'America/New_York')
+      WHERE id = ${category}`;
+  }
   revalidatePath("/", "layout");
 }
 

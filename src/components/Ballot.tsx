@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { POINTS, RANK_LABEL, type CategoryId } from "@/lib/categories";
+import { formatClosing } from "@/lib/format";
 import { readStoredToken } from "./VoterSync";
 
 type BallotTalk = { id: number; start_time: string; position: number; room: string; speakers: string; title: string };
@@ -15,6 +16,7 @@ export default function Ballot(props: {
   category: CategoryId;
   talks: BallotTalk[];
   isOpen: boolean;
+  closesAt: string | null;
   alreadyVoted: boolean;
   other: { id: CategoryId; name: string; voted: boolean; open: boolean };
 }) {
@@ -139,7 +141,13 @@ export default function Ballot(props: {
     const content = {
       done: { title: "Thank you for voting!", body: "Your vote has been recorded." },
       already: { title: "You've already voted for this award. Thanks!", body: "Each device can vote once per award." },
-      closed: { title: "Voting has closed", body: "Voting for this award is not open right now." },
+      closed: {
+        title: "Voting has closed",
+        body:
+          props.closesAt && new Date(props.closesAt) <= new Date()
+            ? `Voting closed ${formatClosing(props.closesAt)}. Thank you! Winners will be announced at the awards ceremony.`
+            : "Voting for this award is not open right now.",
+      },
     }[step];
     return (
       <section className="mt-2 rounded-2xl bg-white p-6 text-center shadow-sm ring-1 ring-black/5" aria-live="polite">
@@ -236,6 +244,9 @@ export default function Ballot(props: {
         From the talks <strong>you attended</strong>, tap <strong>1st</strong>, <strong>2nd</strong> or{" "}
         <strong>3rd</strong>. Only 1st place is required.
       </p>
+      {props.closesAt && (
+        <p className="mt-2 text-sm font-medium text-brand">Voting closes {formatClosing(props.closesAt)}.</p>
+      )}
 
       <div className="sticky top-0 z-10 -mx-4 mt-4 bg-background/95 px-4 py-2 backdrop-blur">
         <label htmlFor="search" className="sr-only">

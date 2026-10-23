@@ -73,7 +73,8 @@ export async function POST(request: Request) {
   try {
     await sql.begin(async (tx) => {
       const [category] = await tx<{ is_open: boolean }[]>`
-        SELECT is_open FROM categories WHERE id = ${ballot.category}`;
+        SELECT (is_open AND (closes_at IS NULL OR now() < closes_at)) AS is_open
+        FROM categories WHERE id = ${ballot.category}`;
       if (!category?.is_open) throw new VoteError(CLOSED);
 
       const talks = await tx`

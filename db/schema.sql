@@ -64,3 +64,9 @@ INSERT INTO categories (id, name, is_open) VALUES
   ('papers', 'Best Paper Presentation', false),
   ('lightning', 'Best Lightning Talk', false)
 ON CONFLICT (id) DO NOTHING;
+
+-- Automatic closing time for each award: after it passes, ballots show "Voting has closed".
+-- When this column is first added, both awards get Friday Oct 30, 2026 at 4:00 PM New York time.
+-- "ADD COLUMN IF NOT EXISTS" only runs once, so later changes made on the admin page are kept.
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS closes_at timestamptz DEFAULT '2026-10-30 16:00:00 America/New_York';
+ALTER TABLE categories ALTER COLUMN closes_at DROP DEFAULT;

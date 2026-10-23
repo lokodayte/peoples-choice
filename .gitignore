@@ -42,3 +42,6 @@ next-env.d.ts
 
 # The example settings file is safe to share (no real secrets)
 !.env.example
+
+# Generated print files (make them with: npm run print -- https://your-site.vercel.app)
+/print/out/
