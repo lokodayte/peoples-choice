@@ -32,6 +32,7 @@ const OUT = fileURLToPath(new URL("./out/", import.meta.url)); // decodes spaces
 // ---- Event details (edit here if anything changes) ----
 const EVENT = {
   name: "Marist Computing Conference",
+  short: "MCC 2026",
   date: "Friday, October 30, 2026",
   shortDate: "Oct 30, 2026",
   closes: "4:00 PM",
@@ -83,7 +84,8 @@ function flyerHtml(qr) {
                 border-radius: 50%; background: rgba(255,255,255,0.07); }
   .top .bigicon { position: absolute; right: 0.45in; bottom: 0.3in; width: 1.4in; height: 1.4in; opacity: 0.9; }
   .kicker { font-weight: 600; font-size: 12.5pt; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.92; }
-  h1 { font-weight: 900; font-size: 50pt; line-height: 0.96; letter-spacing: -0.025em; margin-top: 0.14in; }
+  h1 { font-weight: 900; font-size: 62pt; line-height: 0.95; letter-spacing: -0.03em; margin-top: 0.12in; }
+  .h2 { font-weight: 800; font-size: 36pt; line-height: 1; letter-spacing: -0.02em; margin-top: 0.04in; }
   .sub { font-size: 17pt; font-weight: 500; margin-top: 0.14in; opacity: 0.96; }
 
   .awards { display: flex; gap: 0.16in; margin-top: 0.2in; }
@@ -121,8 +123,9 @@ function flyerHtml(qr) {
   <header class="top">
     <div class="bigicon">${trophy("rgba(255,255,255,0.9)", 2.2)}</div>
     <p class="kicker">${EVENT.name} · ${EVENT.shortDate}</p>
-    <h1>People's Choice<br>Awards</h1>
-    <p class="sub">Which talks were the best? <strong>You decide.</strong></p>
+    <h1>${EVENT.short}</h1>
+    <p class="h2">Best Presentations</p>
+    <p class="sub"><strong>Vote now!</strong> · People's Choice Awards</p>
   </header>
 
   <section class="awards">
@@ -158,9 +161,9 @@ function tentHtml(qr) {
     <div class="panel">
       <div class="qrcol"><div class="qr">${qr}</div><p class="url addr">${shownUrl}</p></div>
       <div class="text">
-        <p class="kicker">${EVENT.name}</p>
-        <h1>Vote for<br><span>People's Choice!</span></h1>
-        <p class="awards">Best Paper Presentation · Best Lightning Talk</p>
+        <p class="kicker">${EVENT.name} · ${EVENT.short}</p>
+        <h1>Vote for MCC's<br><span>Best Presentations!</span></h1>
+        <p class="awards">People's Choice Awards: Best Paper Presentation · Best Lightning Talk</p>
         <ol>
           <li><b>1</b>Scan the code with your phone camera</li>
           <li><b>2</b>Pick your top 3 talks you attended</li>
@@ -188,7 +191,7 @@ function tentHtml(qr) {
   .kicker { font-weight: 600; font-size: 11pt; letter-spacing: 0.14em; text-transform: uppercase; color: #a6192e; }
   h1 { font-weight: 900; font-size: 34pt; line-height: 0.98; letter-spacing: -0.02em; margin-top: 0.06in; }
   h1 span { color: #a6192e; }
-  .awards { font-size: 12pt; font-weight: 600; color: #555; margin-top: 0.08in; }
+  .awards { font-size: 11pt; font-weight: 600; color: #555; margin-top: 0.08in; }
   ol { list-style: none; margin-top: 0.14in; display: grid; gap: 0.06in; }
   li { font-size: 13pt; display: flex; align-items: center; gap: 0.1in; }
   li b { width: 0.28in; height: 0.28in; border-radius: 50%; background: #a6192e; color: #fff; font-size: 11pt;
@@ -214,7 +217,7 @@ function labeledQrHtml(qr) {
 </style></head><body><div class="box">
   <div class="qr">${qr}</div>
   <p class="t">Scan to vote!</p>
-  <p class="s">People's Choice Awards</p>
+  <p class="s">MCC Best Presentations</p>
   <p class="s">Voting closes ${EVENT.closes}</p>
 </div></body></html>`;
 }
